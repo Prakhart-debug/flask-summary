@@ -1,0 +1,112 @@
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #6a11cb, #2575fc);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 400px;
+}
+
+h2 {
+    margin-bottom: 20px;
+}
+
+.file-input {
+    display: none;
+}
+
+.file-label {
+    display: inline-block;
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 10px 2px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+button:hover, .file-label:hover {
+    background-color: #45a049;
+}
+
+p {
+    margin-top: 20px;
+}
+
+.running-animation {
+    display: none;
+    margin-top: 20px;
+    font-weight: bold;
+    color: #FF5733;
+}
+
+#fileListContainer {
+    max-height: 200px; /* Adjust as needed */
+    overflow-y: auto;
+    margin-top: 20px;
+}
+
+#fileList ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#fileList li {
+    background-color: #f1f1f1;
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.popup {
+    display: none;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    background-color: white;
+    border: 2px solid #4CAF50;
+    border-radius: 10px;
+    z-index: 1000;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.popup-content {
+    padding: 20px;
+    text-align: center;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #aaa;
+    font-size: 20px;
+    cursor: pointer;
+}

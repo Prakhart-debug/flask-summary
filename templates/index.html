@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload and Processing</title>
+    <link rel="stylesheet" href="../static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Document De-Duplication & Consolidation</h2>
+        <h3>Upload Files</h3>
+        <input type="file" name="files" multiple id="files" class="file-input" onchange="displaySelectedFiles()">
+        <br><br>
+        <label for="files" class="file-label">Select Files</label>
+        <button id="uploadButton" onclick="upload()">Upload</button>
+        <div id="runningAnimation" class="running-animation" style="display:none;">Processing...</div>
+        <p id="simi"></p>
+        <div id="fileListContainer">
+            <div id="fileList"></div>
+        </div>
+    </div>
+    
+    <div id="popup" class="popup" style="display:none;">
+        <div class="popup-content">
+            <span class="close" onclick="closePopup()">&times;</span>
+            <p>Files uploaded successfully!</p>
+        </div>
+    </div>
+    
+    <script>
+        function showPopup() {
+            const popup = document.getElementById('popup');
+            popup.style.display = 'block';
+        }
+
+        function closePopup() {
+            const popup = document.getElementById('popup');
+            popup.style.display = 'none';
+        }
+
+        function formatSimilarityScores(similarityData) {
+            const scores = similarityData.split('<br>').filter(line => line.trim() !== '');
+            let formattedScores = 'SIMILARITY SCORES:<br>';
+            scores.forEach((score, index) => {
+                const [file, scoreValue] = score.split(' is ');
+                const fileName = file.replace('The Similarity score for ', '').replace('_Consolidated_Output.docx', '');
+                formattedScores += `${index + 1}) ${fileName}: ${scoreValue}<br>`;
+            });
+            return formattedScores;
+        }
+
+        function displaySelectedFiles() {
+            const inputElement = document.getElementById('files');
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '<h3>Selected Files:</h3>';
+            const ul = document.createElement('ul');
+            for (let i = 0; i < inputElement.files.length; i++) {
+                const li = document.createElement('li');
+                li.textContent = inputElement.files[i].name;
+                ul.appendChild(li);
+            }
+            fileList.appendChild(ul);
+        }
+
+        async function upload() {
+            const apiUrl = 'http://127.0.0.1:5000/upload';
+            const inputElement = document.getElementById('files');
+            const runningAnimation = document.getElementById('runningAnimation');
+            
+            if (!inputElement || !inputElement.files || inputElement.files.length === 0) {
+                console.error('No file selected.');
+                return;
+            }
+
+            const formData = new FormData();
+            
+            for (let i = 0; i < inputElement.files.length; i++) {
+                formData.append('files', inputElement.files[i]);
+            }
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Files uploaded successfully!', data);
+
+                showPopup();
+                runningAnimation.style.display = 'block';
+
+                const scriptUrl = `http://127.0.0.1:5000/run_script?upload_folder=${data["data"]}`;
+                const scriptResponse = await fetch(scriptUrl);
+
+                if (!scriptResponse.ok) {
+                    throw new Error(`HTTP error! Status: ${scriptResponse.status}`);
+                }
+
+                const blob = await scriptResponse.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = downloadUrl;
+                a.download = 'Consolidated_Outputs.zip';
+                document.body.appendChild(a);
+                a.click();
+
+                const simiURL = `http://127.0.0.1:5000/get_similarity?folder_name=${data["data"]}`;
+                const simiURLResponse = await fetch(simiURL);
+
+                if (!simiURLResponse.ok) {
+                    throw new Error(`HTTP error! Status: ${simiURLResponse.status}`);
+                }
+
+                const data_1 = await simiURLResponse.json();
+                document.getElementById("simi").innerHTML = formatSimilarityScores(data_1["data"]);
+
+                const cleanFilesUrl = `http://127.0.0.1:5000/clean_files?folder_name=${data["data"]}`;
+                const cleanFilesResponse = await fetch(cleanFilesUrl);
+
+                if (!cleanFilesResponse.ok) {
+                    throw new Error(`HTTP error! Status: ${cleanFilesResponse.status}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                runningAnimation.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
